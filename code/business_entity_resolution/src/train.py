@@ -1,9 +1,3 @@
-"""
-Training module for Business Entity Resolution matcher.
-Mines hard negatives from candidate generation and trains a LightGBM classifier.
-Optimizes the entity-level threshold for Macro F_0.5 on held-out validation data.
-"""
-
 import os
 import sys
 import time
@@ -17,7 +11,6 @@ from normalize import normalize_name, normalize_address, extract_numbers
 from features import compute_pair_features, FEATURE_NAMES
 
 def compute_entity_f_beta(pred_set, true_set, beta=0.5):
-    """Compute Macro F_0.5 for a single S1 entity."""
     if len(true_set) == 0:
         return 1.0 if len(pred_set) == 0 else 0.0
     if len(pred_set) == 0:
@@ -31,7 +24,7 @@ def compute_entity_f_beta(pred_set, true_set, beta=0.5):
     return (1.0 + beta_sq) * prec * rec / (beta_sq * prec + rec)
 
 def main():
-    print("=== Training Business Entity Resolution Matcher ===")
+    print("Training Business Entity Resolution Matcher")
     os.makedirs("models", exist_ok=True)
     con = duckdb.connect()
     
@@ -147,7 +140,6 @@ def main():
         nums = extract_numbers(s1_addr)
         true_set = train_gt_map.get(s1_id, set())
         
-        # Add True Positives
         for m_id in true_set:
             if m_id in cand_dict:
                 _, _, _, c_norm_n, c_norm_a, c_nums = cand_dict[m_id]
@@ -158,7 +150,6 @@ def main():
                 X_train.append(feats)
                 y_train.append(1)
                 
-        # Mine Hard Negatives from blocking
         keys = []
         if norm_n and len(norm_n) >= 3: keys.append(('N_EXACT', s1_c, norm_n))
         if norm_n and len(norm_n) >= 4: keys.append(('PRE4', s1_c, norm_n[:4]))
@@ -177,7 +168,6 @@ def main():
                 if cid not in true_set:
                     cand_scores[cid] += 1
                     
-        # Pick top 4 hard negatives per S1
         hard_negs = sorted(cand_scores.keys(), key=lambda c: cand_scores[c], reverse=True)[:4]
         for hn_id in hard_negs:
             if hn_id in cand_dict:
