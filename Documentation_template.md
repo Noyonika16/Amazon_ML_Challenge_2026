@@ -1,7 +1,7 @@
 # ML Challenge 2026: Business Entity Resolution Solution Template
 
-**Team Name:** EntityResolvers  
-**Team Members:** Team EntityResolvers  
+**Team Name:** Outliers  
+**Team Members:** Pritish Kumar Singh, Noyonika Mukherjee, Sivaramakrishnan, Manish  
 **Submission Date:** September 26, 2026  
 
 ---
