@@ -63,3 +63,10 @@ experiments/
 # =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# FINAL OUTPUT FILES
+# =========================
+!output/
+!output/candidate_pairs.tsv
+!output/matching_results.tsv
