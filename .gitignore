@@ -1,0 +1,65 @@
+# =========================
+# AMAZON ML CHALLENGE DATA
+# =========================
+dataset/
+*.tsv
+*.csv
+*.parquet
+
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+
+# =========================
+# JUPYTER
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# ML MODELS / ARTIFACTS
+# =========================
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+embeddings/
+indexes/
+cache/
+
+# =========================
+# EXPERIMENTS / LOGS
+# =========================
+logs/
+experiments/
+
+# =========================
+# IDE
+# =========================
+.vscode/
+
+# =========================
+# GENERATED ARCHIVES
+# =========================
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
