@@ -1,11 +1,3 @@
-"""
-Validation benchmark for multi-channel blocking on ground truth data.
-Measures:
-1. Candidate Recall (% of true matches retrieved)
-2. Average candidate count per S1 entity
-3. Time taken
-"""
-
 import sys
 import time
 import duckdb
@@ -43,8 +35,6 @@ for s1_id, s1_name, s1_addr, s1_c, gt_str in val_s1_records:
 print(f"Total S1 entities: {len(val_s1_records):,}, Entities with >=1 match: {len([k for k, v in gt_map.items() if v]):,}")
 print(f"Total true matching IDs across S2/S3: {len(target_match_ids):,}")
 
-# Load the S2 and S3 records for these countries
-# To test real retrieval at scale, load 200,000 candidate records from S2 and S3 (including all target match IDs!)
 print("Loading S2 and S3 candidate pool (including all target match IDs + 100,000 background records)...")
 t0 = time.time()
 s2_records = con.execute('''
@@ -79,7 +69,6 @@ if missing_matches:
 pool_records = s2_records + s3_records
 print(f"Total candidate pool size: {len(pool_records):,} records. Loaded in {time.time()-t0:.2f}s")
 
-# Build Multi-Channel Blocking Index
 print("Building Multi-Channel Blocking Indices...")
 t0 = time.time()
 name_exact_index = defaultdict(list)
@@ -87,7 +76,6 @@ name_token_index = defaultdict(list)
 addr_num_index = defaultdict(list)
 postal_index = defaultdict(list)
 
-# Common generic stopwords to filter out of token index
 GENERIC_WORDS = {'ltd', 'pvt', 'inc', 'llc', 'the', 'and', 'corp', 'company', 'services', 'solutions', 'enterprises'}
 
 for r in pool_records:
@@ -121,7 +109,6 @@ print(f"  Token keys: {len(name_token_index):,}")
 print(f"  Address number keys: {len(addr_num_index):,}")
 print(f"  Postal/Phone keys: {len(postal_index):,}")
 
-# Benchmark Candidate Retrieval
 print("\nRetrieving candidates for validation S1 records...")
 t0 = time.time()
 total_true_matches = sum(len(v) for v in gt_map.values())
@@ -178,7 +165,7 @@ elapsed = time.time() - t0
 avg_cands = total_candidates / len(val_s1_records)
 recall = retrieved_true_matches / total_true_matches if total_true_matches > 0 else 0
 
-print(f"\n=== BENCHMARK RESULTS ({len(val_s1_records):,} S1 Entities) ===")
+print(f"\nBENCHMARK RESULTS ({len(val_s1_records):,} S1 Entities) ===")
 print(f"Time taken: {elapsed:.2f}s ({len(val_s1_records)/elapsed:.0f} entities/sec)")
 print(f"Candidate Recall: {recall*100:.2f}% ({retrieved_true_matches:,} / {total_true_matches:,})")
 print(f"Average candidates per S1: {avg_cands:.1f}")
