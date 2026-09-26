@@ -1,16 +1,7 @@
-"""
-Vectorized, high-precision pairwise feature extraction for entity resolution.
-Uses rapidfuzz for C++ accelerated Levenshtein, Jaro-Winkler, and token similarity.
-Purely based on entity text, token structure, and numeric anchors (zero leakage).
-"""
-
 from rapidfuzz import fuzz, distance
 
 def compute_pair_features(s1_norm_n, s1_norm_a, s1_nums, cand_norm_n, cand_norm_a, cand_nums):
-    """
-    Extract high-signal pairwise features between S1 entity and Candidate entity.
-    """
-    # 1. Name similarity features
+   
     if s1_norm_n and cand_norm_n:
         n_exact = 1.0 if s1_norm_n == cand_norm_n else 0.0
         n_ratio = fuzz.ratio(s1_norm_n, cand_norm_n) / 100.0
@@ -22,7 +13,6 @@ def compute_pair_features(s1_norm_n, s1_norm_a, s1_nums, cand_norm_n, cand_norm_
     else:
         n_exact, n_ratio, n_tsort, n_tset, n_partial, n_jw, len_diff = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0
 
-    # 2. Address similarity features
     addr_missing = 1.0 if (not s1_norm_a or not cand_norm_a) else 0.0
     if not addr_missing:
         a_ratio = fuzz.ratio(s1_norm_a, cand_norm_a) / 100.0
@@ -33,7 +23,6 @@ def compute_pair_features(s1_norm_n, s1_norm_a, s1_nums, cand_norm_n, cand_norm_
     else:
         a_ratio, a_tsort, a_tset, a_partial, a_jw = 0.0, 0.0, 0.0, 0.0, 0.0
 
-    # 3. Numeric & structural features (street numbers, postal codes, phone numbers)
     has_s1_nums = bool(s1_nums)
     has_cand_nums = bool(cand_nums)
     
@@ -47,11 +36,9 @@ def compute_pair_features(s1_norm_n, s1_norm_a, s1_nums, cand_norm_n, cand_norm_
         exact_num_match = 0.0
         num_conflict = 0.0
 
-    # 4. Joint interaction features
     name_x_addr = n_tsort * a_tsort
     max_sim = max(n_tsort, a_tsort)
     
-    # 5. Composite match indicators
     is_name_addr_match = 1.0 if (n_tsort >= 0.75 and a_tsort >= 0.65) else 0.0
     is_transliterated_match = 1.0 if (exact_num_match == 1.0 and a_tsort >= 0.65) else 0.0
     is_name_match_missing_addr = 1.0 if (addr_missing == 1.0 and n_tsort >= 0.80) else 0.0
