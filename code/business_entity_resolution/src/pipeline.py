@@ -1,11 +1,3 @@
-"""
-End-to-End Vectorized High-Throughput Inference Pipeline for Business Entity Resolution Challenge.
-Generates:
-1. output/candidate_pairs.tsv
-2. output/matching_results.tsv
-Fully compliant with all competition rules, constraints, and validation checks.
-"""
-
 import os
 import sys
 import time
@@ -22,7 +14,6 @@ from set_decision import decide_match_set
 STOPWORDS = {'road', 'street', 'avenue', 'lane', 'drive', 'near', 'opp', 'floor', 'block', 'sector', 'city', 'state', 'india', 'null'}
 
 def extract_blocking_keys(name, addr, country):
-    """Generate multi-channel blocking keys for a record."""
     keys = []
     norm_n = normalize_name(name)
     norm_a = normalize_address(addr)
@@ -50,16 +41,9 @@ def extract_blocking_keys(name, addr, country):
     return keys, norm_n, norm_a, nums
 
 def process_country(country, test_dir, model, threshold, cand_file, match_file, top_k=30):
-    """
-    Process all S1 entities for a given country against all S2/S3 entities of that country.
-    Streams output directly to files using vectorized batch predictions.
-    """
-    print(f"\n=======================================================")
-    print(f"Processing Country: {country}")
-    print(f"=======================================================")
+      print(f"Processing Country: {country}")
     con = duckdb.connect()
     
-    # 1. Load S2 and S3 for this country
     t0 = time.time()
     print(f"Loading Source 2 records for {country}...")
     s2_rows = con.execute(f'''
@@ -78,7 +62,6 @@ def process_country(country, test_dir, model, threshold, cand_file, match_file, 
     s23_rows = s2_rows + s3_rows
     print(f"Total candidate pool for {country}: {len(s23_rows):,} records loaded in {time.time()-t0:.2f}s")
     
-    # 2. Build In-Memory Blocking Index
     print(f"Building blocking index for {country}...")
     t0 = time.time()
     index = defaultdict(list)
@@ -93,7 +76,6 @@ def process_country(country, test_dir, model, threshold, cand_file, match_file, 
     print(f"Index built with {len(index):,} distinct keys in {time.time()-t0:.2f}s")
     del s2_rows, s3_rows, s23_rows
     
-    # 3. Load S1 records for this country
     print(f"Loading Source 1 records for {country}...")
     t0 = time.time()
     s1_rows = con.execute(f'''
@@ -103,7 +85,6 @@ def process_country(country, test_dir, model, threshold, cand_file, match_file, 
     ''').fetchall()
     print(f"Loaded {len(s1_rows):,} Source 1 records for {country} in {time.time()-t0:.2f}s")
     
-    # 4. Stream Candidate Retrieval & Vectorized Batch Model Scoring
     print(f"Running Vectorized Candidate Retrieval & Scoring for {len(s1_rows):,} records...")
     t_start = time.time()
     BATCH_SIZE = 10000
@@ -142,14 +123,12 @@ def process_country(country, test_dir, model, threshold, cand_file, match_file, 
             end_idx = curr_idx
             entity_cand_slices.append((s1_id, start_idx, end_idx, cands))
             
-        # Vectorized batch prediction across all candidate pairs in batch
         if all_feats:
             X_batch = np.array(all_feats, dtype=np.float32)
             batch_probs = model.predict(X_batch)
         else:
             batch_probs = np.array([], dtype=np.float32)
             
-        # Generate output rows for the batch
         batch_cand_outputs = []
         batch_match_outputs = []
         
@@ -218,12 +197,10 @@ def main():
         for country in countries:
             process_country(country, test_dir, model, threshold, f_cand, f_match, top_k=30)
             
-    print(f"\n=======================================================")
     print(f"END-TO-END INFERENCE COMPLETED IN {time.time()-t_global:.2f}s!")
     print(f"Generated:")
     print(f"  {cand_path} ({os.path.getsize(cand_path)/1024/1024:.1f} MB)")
     print(f"  {match_path} ({os.path.getsize(match_path)/1024/1024:.1f} MB)")
-    print(f"=======================================================")
 
 if __name__ == "__main__":
     main()
